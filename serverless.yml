@@ -1,0 +1,22 @@
+service: alarm-dealer-setter
+provider:
+  name: aws
+  runtime: nodejs8.10
+
+plugins:
+  - serverless-offline
+  - serverless-plugin-chrome
+  
+package:
+  exclude:
+    - node_modules/puppeteer/.local-chromium/**
+
+functions:
+  get:
+    handler: handler.get
+    memorySize: 1536MB
+    timeout: 60
+    events:
+      - http:
+          path: /
+          method: get
