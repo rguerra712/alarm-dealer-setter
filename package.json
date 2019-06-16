@@ -11,9 +11,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@serverless-chrome/lambda": "^1.0.0-55",
+    "aws-sdk": "^2.476.0",
     "chrome-launcher": "^0.10.5",
     "puppeteer": "^1.11.0",
-    "serverless-offline": "^3.31.3",
     "serverless-plugin-chrome": "^1.0.0-55",
     "superagent": "^4.0.0"
   },
@@ -24,5 +24,9 @@
   "bugs": {
     "url": "git@github.com:rguerra712/alarm-dealer-setter/issues"
   },
-  "homepage": "git@github.com:rguerra712/alarm-dealer-setter#readme"
+  "homepage": "git@github.com:rguerra712/alarm-dealer-setter#readme",
+  "devDependencies": {
+    "serverless-offline": "^5.3.3",
+    "serverless-pseudo-parameters": "^2.4.0"
+  }
 }

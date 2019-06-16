@@ -2,13 +2,21 @@ service: alarm-dealer-setter
 provider:
   name: aws
   runtime: nodejs8.10
+  region: us-east-1
   environment:
     AlarmDealerUsername: ${ssm:ALARM_DEALER_USERNAME}
     AlarmDealerPassword: ${ssm:ALARM_DEALER_PASSWORD}
+    AlarmSetArn: arn:aws:sns:us-east-1:#{AWS::AccountId}:setAlarm
+  iamRoleStatements:
+    - Effect: "Allow"
+      Resource: "*"
+      Action:
+        - "sns:*"
 
 plugins:
   - serverless-offline
   - serverless-plugin-chrome
+  - serverless-pseudo-parameters
   
 package:
   exclude:
@@ -16,10 +24,18 @@ package:
 
 functions:
   get:
-    handler: handler.get
-    memorySize: 1536MB
-    timeout: 900
+    handler: apiHandler.get
+    timeout: 30
     events:
       - http:
           path: /setAlarm
+          method: get
+  setAlarm:
+    handler: handler.setAlarm
+    memorySize: 1536MB
+    timeout: 900
+    events:
+      - sns: setAlarm
+      - http:
+          path: /testAlarm
           method: get

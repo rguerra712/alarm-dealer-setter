@@ -14,7 +14,7 @@ async function login(page) {
   console.log('logged in');
 }
 
-module.exports.get = async () => {
+module.exports.setAlarm = async () => {
   const url = 'https://alarmdealer.com/index.php?mod=devices&action=keypad';
   const logoutUrl = 'https://alarmdealer.com/index.php?mod=auth&action=logout';
   const chrome = await getChrome();
@@ -29,6 +29,7 @@ module.exports.get = async () => {
 
   // Sadly you have to logout otherwise you get a connection error
   console.log('logging out');
+  await page.waitFor(10000); // Let it try to connect a little
   await page.goto(logoutUrl, { waitUntil: 'networkidle0' });
   await page.goto(logoutUrl, { waitUntil: 'networkidle0' });
   await page.goto(url, { waitUntil: 'networkidle0' });
@@ -37,28 +38,41 @@ module.exports.get = async () => {
   await login(page);
 
   // Wait for system to be "Ready to Arm"
-  const timeoutOptions = { timeout: 300000 }; // Sometimes it is really slow
-  let displayText;
-  while (displayText !== 'Ready to Arm') {
+  let content = '';
+  while (!content.includes('Ready to Arm')) {
     console.log('waiting for Ready to Arm');
-    const element = await page.waitForSelector('.dsc-lcdtext-2', timeoutOptions);
-    displayText = await page.evaluate(element => element.textContent, element);
-    console.log('displayText', displayText);
-    if (displayText === 'in Away Mode') {
-      console.log('Alarm already set');
-      browser.close();
+    try {
+      await page.waitFor(10000); // Start with polling, it is SLOW
+      content = await page.evaluate(() => document.body.innerHTML);
+      if (content.includes('in Away Mode')) {
+        console.log('Alarm already set');
+        browser.close();
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            message: 'Alarm Already Set',
+          }),
+        };
+      }
+    } catch (error) {
+      console.error(error);
+      content = await page.evaluate(() => document.body.innerHTML);
+      console.log('content', content);
       return {
-        statusCode: 200,
+        statusCode: 500,
         body: JSON.stringify({
-          message: 'Alarm Already Set',
+          error: JSON.stringify(error),
         }),
-      };    
+      };
     }
   }
 
+  console.log('clicking away');
   const awayButton = await page.$('.dsc-button-away');
   await awayButton.click();
+  console.log('away clicked');
 
+  await page.waitFor(10000); // Wait a few seconds for it to register
   browser.close();
   return {
     statusCode: 200,
