@@ -2,6 +2,9 @@ service: alarm-dealer-setter
 provider:
   name: aws
   runtime: nodejs8.10
+  environment:
+    AlarmDealerUsername: ${ssm:ALARM_DEALER_USERNAME}
+    AlarmDealerPassword: ${ssm:ALARM_DEALER_PASSWORD}
 
 plugins:
   - serverless-offline
@@ -15,8 +18,8 @@ functions:
   get:
     handler: handler.get
     memorySize: 1536MB
-    timeout: 60
+    timeout: 900
     events:
       - http:
-          path: /
+          path: /setAlarm
           method: get
